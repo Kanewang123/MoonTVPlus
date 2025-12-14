@@ -61,6 +61,7 @@ export default async function RootLayout({
     process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true';
   let fluidSearch = process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false';
   let enableComments = false;
+  let tmdbApiKey = '';
   let customCategories = [] as {
     name: string;
     type: 'movie' | 'tv';
@@ -85,6 +86,7 @@ export default async function RootLayout({
     }));
     fluidSearch = config.SiteConfig.FluidSearch;
     enableComments = config.SiteConfig.EnableComments;
+    tmdbApiKey = config.SiteConfig.TMDBApiKey || '';
   }
 
   // 将运行时配置注入到全局 window 对象，供客户端在运行时读取
@@ -128,7 +130,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SiteProvider siteName={siteName} announcement={announcement}>
+          <SiteProvider siteName={siteName} announcement={announcement} tmdbApiKey={tmdbApiKey}>
             <WatchRoomProvider>
               <DownloadProvider>
                 <DanmakuCacheCleanup />

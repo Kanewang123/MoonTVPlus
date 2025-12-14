@@ -221,6 +221,8 @@ async function getInitConfig(configFile: string, subConfig: {
       // 弹幕配置
       DanmakuApiBase: process.env.DANMAKU_API_BASE || 'http://localhost:9321',
       DanmakuApiToken: process.env.DANMAKU_API_TOKEN || '87654321',
+      // TMDB配置
+      TMDBApiKey: '',
       // 评论功能开关
       EnableComments: false,
     },

@@ -18,6 +18,11 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { getDoubanCategories } from '@/lib/douban.client';
+import {
+  getTMDBUpcomingContent,
+  getTMDBImageUrl,
+  TMDBItem,
+} from '@/lib/tmdb.client';
 import { DoubanItem } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
@@ -32,11 +37,12 @@ function HomeClient() {
   const [hotMovies, setHotMovies] = useState<DoubanItem[]>([]);
   const [hotTvShows, setHotTvShows] = useState<DoubanItem[]>([]);
   const [hotVarietyShows, setHotVarietyShows] = useState<DoubanItem[]>([]);
+  const [upcomingContent, setUpcomingContent] = useState<TMDBItem[]>([]);
   const [bangumiCalendarData, setBangumiCalendarData] = useState<
     BangumiCalendarData[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const { announcement } = useSite();
+  const { announcement, tmdbApiKey } = useSite();
 
   const [showAnnouncement, setShowAnnouncement] = useState(false);
 
@@ -73,7 +79,7 @@ function HomeClient() {
       try {
         setLoading(true);
 
-        // 并行获取热门电影、热门剧集和热门综艺
+        // 并行获取热门电影、热门剧集、热门综艺和番剧日历
         const [moviesData, tvShowsData, varietyShowsData, bangumiCalendarData] =
           await Promise.all([
             getDoubanCategories({
@@ -99,6 +105,20 @@ function HomeClient() {
         }
 
         setBangumiCalendarData(bangumiCalendarData);
+
+        // 如果配置了 TMDB API Key，则获取即将上映/播出内容
+        if (tmdbApiKey) {
+          const tmdbData = await getTMDBUpcomingContent(tmdbApiKey);
+          if (tmdbData.code === 200) {
+            // 按上映/播出日期升序排序（最近的排在前面）
+            const sortedContent = [...tmdbData.list].sort((a, b) => {
+              const dateA = new Date(a.release_date || '9999-12-31').getTime();
+              const dateB = new Date(b.release_date || '9999-12-31').getTime();
+              return dateA - dateB;
+            });
+            setUpcomingContent(sortedContent);
+          }
+        }
       } catch (error) {
         console.error('获取推荐数据失败:', error);
       } finally {
@@ -107,7 +127,7 @@ function HomeClient() {
     };
 
     fetchRecommendData();
-  }, []);
+  }, [tmdbApiKey]);
 
   // 处理收藏数据更新的函数
   const updateFavoriteItems = useCallback(
@@ -447,6 +467,40 @@ function HomeClient() {
                       ))}
                 </ScrollableRow>
               </section>
+
+              {/* 即将上映/播出 (TMDB) */}
+              {tmdbApiKey && upcomingContent.length > 0 && (
+                <section className='mb-8'>
+                  <div className='mb-4 flex items-center justify-between'>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                      即将上映
+                    </h2>
+                  </div>
+                  <ScrollableRow>
+                    {upcomingContent.map((item) => (
+                      <div
+                        key={`${item.media_type}-${item.id}`}
+                        className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                      >
+                        <VideoCard
+                          title={item.title}
+                          poster={getTMDBImageUrl(item.poster_path)}
+                          year={item.release_date?.split('-')?.[0] || ''}
+                          rate={
+                            item.vote_average && item.vote_average > 0
+                              ? item.vote_average.toFixed(1)
+                              : ''
+                          }
+                          type={item.media_type === 'tv' ? 'tv' : 'movie'}
+                          from='douban'
+                          releaseDate={item.release_date}
+                          isUpcoming={true}
+                        />
+                      </div>
+                    ))}
+                  </ScrollableRow>
+                </section>
+              )}
             </>
           )}
         </div>

@@ -296,6 +296,7 @@ interface SiteConfig {
   FluidSearch: boolean;
   DanmakuApiBase: string;
   DanmakuApiToken: string;
+  TMDBApiKey?: string;
   EnableComments: boolean;
   EnableRegistration?: boolean;
   RegistrationRequireTurnstile?: boolean;
@@ -4592,6 +4593,7 @@ const SiteConfigComponent = ({
     FluidSearch: true,
     DanmakuApiBase: 'http://localhost:9321',
     DanmakuApiToken: '87654321',
+    TMDBApiKey: '',
     EnableComments: false,
     EnableRegistration: false,
     RegistrationRequireTurnstile: false,
@@ -4674,6 +4676,7 @@ const SiteConfigComponent = ({
         DanmakuApiBase:
           config.SiteConfig.DanmakuApiBase || 'http://localhost:9321',
         DanmakuApiToken: config.SiteConfig.DanmakuApiToken || '87654321',
+        TMDBApiKey: config.SiteConfig.TMDBApiKey || '',
         EnableComments: config.SiteConfig.EnableComments || false,
         EnableRegistration: config.SiteConfig.EnableRegistration || false,
         RegistrationRequireTurnstile: config.SiteConfig.RegistrationRequireTurnstile || false,
@@ -5231,6 +5234,43 @@ const SiteConfigComponent = ({
           />
           <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
             弹幕服务器的访问令牌，默认为 87654321
+          </p>
+        </div>
+      </div>
+
+      {/* TMDB 配置 */}
+      <div className='space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700'>
+        <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100'>
+          TMDB 配置
+        </h3>
+
+        {/* TMDB API Key */}
+        <div>
+          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+            TMDB API Key
+          </label>
+          <input
+            type='text'
+            placeholder='请输入 TMDB API Key'
+            value={siteSettings.TMDBApiKey}
+            onChange={(e) =>
+              setSiteSettings((prev) => ({
+                ...prev,
+                TMDBApiKey: e.target.value,
+              }))
+            }
+            className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+          />
+          <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+            配置后首页将显示 TMDB 即将上映电影。获取 API Key 请访问{' '}
+            <a
+              href='https://www.themoviedb.org/settings/api'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300'
+            >
+              TMDB API 设置页面
+            </a>
           </p>
         </div>
       </div>
