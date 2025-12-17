@@ -15,6 +15,7 @@ import {
   generateStorageKey,
   isFavorited as checkIsFavorited,
   saveFavorite,
+  savePlayRecord,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { parseCustomTimeFormat } from '@/lib/time';
@@ -425,6 +426,25 @@ function LivePageClient() {
         // 异步获取初始频道的节目单（不阻塞页面加载）
         if (selectedChannel) {
           fetchEpgData(selectedChannel, source);
+
+          // 保存播放记录
+          try {
+            await savePlayRecord(`live_${source.key}`, `live_${selectedChannel.id}`, {
+              title: selectedChannel.name,
+              source_name: source.name,
+              year: '',
+              cover: `/api/proxy/logo?url=${encodeURIComponent(selectedChannel.logo)}&source=${source.key}`,
+              index: 1,
+              total_episodes: 1,
+              play_time: 0,
+              total_time: 0,
+              save_time: Date.now(),
+              search_title: '',
+              origin: 'live',
+            });
+          } catch (err) {
+            console.error('保存播放记录失败:', err);
+          }
         }
       }
 
@@ -569,6 +589,27 @@ function LivePageClient() {
     // 获取节目单信息
     if (currentSource) {
       await fetchEpgData(channel, currentSource);
+    }
+
+    // 保存播放记录
+    if (currentSource) {
+      try {
+        await savePlayRecord(`live_${currentSource.key}`, `live_${channel.id}`, {
+          title: channel.name,
+          source_name: currentSource.name,
+          year: '',
+          cover: `/api/proxy/logo?url=${encodeURIComponent(channel.logo)}&source=${currentSource.key}`,
+          index: 1,
+          total_episodes: 1,
+          play_time: 0,
+          total_time: 0,
+          save_time: Date.now(),
+          search_title: '',
+          origin: 'live',
+        });
+      } catch (err) {
+        console.error('保存播放记录失败:', err);
+      }
     }
   };
 
